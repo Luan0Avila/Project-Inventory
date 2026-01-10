@@ -1,7 +1,12 @@
+{% extends "global/base.html" %}
+
+{% block content %}
 <div class="grid">
-    {% for postion in positions %}
-        <div class="cell {% if position.occupied %}occupied{% else %}livre{% endif %}">
+    {% for position in positions %}
+        <div class="cell {% if position.occupied %}occupied{% else %}free{% endif %}">
             {{ position.position }}
         </div>
     {% endfor %}
 </div>
+{% endblock content %}
+

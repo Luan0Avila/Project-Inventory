@@ -1,0 +1,24 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 80px);
+    gap: 10px;
+}
+
+.cell {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 8px;
+    color: white;
+}
+
+.free {
+    background-color: #2ecc71; /* verde */
+}
+
+.occupied {
+    background-color: #e74c3c; /* vermelho */
+}
