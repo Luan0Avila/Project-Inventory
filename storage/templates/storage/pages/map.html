@@ -1,0 +1,7 @@
+<div class="grid">
+    {% for postion in positions %}
+        <div class="cell {% if position.occupied %}occupied{% else %}livre{% endif %}">
+            {{ position.position }}
+        </div>
+    {% endfor %}
+</div>
