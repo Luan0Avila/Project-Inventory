@@ -10,6 +10,7 @@ class Position(models.Model):
 
 class Item(models.Model):
     code = models.CharField(max_length=7, unique=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
     position = models.ForeignKey(Position, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
