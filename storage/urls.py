@@ -5,5 +5,6 @@ app_name = 'storage'
 
 urlpatterns = [
     path('', views.home, name='storage_home'),
-    path('map', views.mapa_estoque, name='storage_map'),
+    path('map', views.storage_map, name='storage_map'),
+    path('moviment', views.storage_movimentation, name='storage_movimentation'),
 ]
