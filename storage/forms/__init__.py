@@ -1,1 +1,1 @@
-from .movimentation_form import MovementForm
+from .movimentation_form import StockMovementForm

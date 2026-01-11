@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
-
-from .models import Stock, Position
+from .models import Stock, Position, Stock, Movement
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
-from .forms import MovementForm
+from django.db import transaction
+from .forms import StockMovementForm
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -23,29 +23,56 @@ def storage_map(request):
     }) 
 
 
-def storage_movimentation(request):
+
+def stock_movement(request):
     if request.method == 'POST':
-        form = MovementForm(request.POST)
+        form = StockMovementForm(request.POST)
+
         if form.is_valid():
-            movement = form.save()
+            item = form.cleaned_data['item']
+            quantity = form.cleaned_data['quantity']
+            from_position = form.cleaned_data['from_position']
+            to_position = form.cleaned_data['to_position']
 
-            stock, created = Stock.objects.get_or_create(
-                item=movement.item,
-                position=movement.position,
-                defaults={'quantity': 0}
-            )
+            with transaction.atomic():
 
-            if movement.movement_type == 'IN':
-                stock.quantity += movement.quantity
-            else:
-                stock.quantity -= movement.quantity
+                # 🔁 SAÍDA
+                if from_position:
+                    Movement.objects.create(
+                        item=item,
+                        position=from_position,
+                        movement_type='OUT',
+                        quantity=quantity
+                    )
 
-            stock.save()
+                    stock_from = Stock.objects.get(
+                        item=item,
+                        position=from_position
+                    )
+                    stock_from.quantity -= quantity
+                    stock_from.save()
+
+                # 🔁 ENTRADA
+                if to_position:
+                    Movement.objects.create(
+                        item=item,
+                        position=to_position,
+                        movement_type='IN',
+                        quantity=quantity
+                    )
+
+                    stock_to, _ = Stock.objects.get_or_create(
+                        item=item,
+                        position=to_position,
+                        defaults={'quantity': 0}
+                    )
+                    stock_to.quantity += quantity
+                    stock_to.save()
 
             messages.success(request, 'Movimentação realizada com sucesso!')
-            return redirect('storage:storage_movimentation')
+            return redirect('storage:stock_movement')
     else:
-        form = MovementForm()
+        form = StockMovementForm()
 
     return render(request, 'storage/pages/movement_form.html', {
         'form': form

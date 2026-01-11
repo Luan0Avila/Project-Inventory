@@ -43,3 +43,22 @@ class Movement(models.Model):
 
     def __str__(self):
         return f"{self.item} {self.movement_type} {self.quantity}"
+
+
+class Transfer(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    from_position = models.ForeignKey(
+        Position,
+        on_delete=models.CASCADE,
+        related_name='transfer_out'
+    )
+    to_position = models.ForeignKey(
+        Position,
+        on_delete=models.CASCADE,
+        related_name='transfer_in'
+    )
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.item} {self.from_position} → {self.to_position}'

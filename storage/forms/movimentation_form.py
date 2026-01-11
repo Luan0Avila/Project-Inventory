@@ -1,30 +1,51 @@
 from django import forms
-from ..models import Movement, Stock
+from ..models import Item, Position, Stock
 
-class MovementForm(forms.ModelForm):
-    class Meta:
-        model = Movement
-        fields = ['item', 'position', 'movement_type', 'quantity']
+class StockMovementForm(forms.Form):
+    item = forms.ModelChoiceField(queryset=Item.objects.all())
+    quantity = forms.DecimalField(max_digits=10, decimal_places=2)
+
+    from_position = forms.ModelChoiceField(
+        queryset=Position.objects.all(),
+        required=False,
+        label='Posição de origem'
+    )
+
+    to_position = forms.ModelChoiceField(
+        queryset=Position.objects.all(),
+        required=False,
+        label='Posição de destino'
+    )
 
     def clean(self):
         cleaned_data = super().clean()
         item = cleaned_data.get('item')
-        position = cleaned_data.get('position')
-        movement_type = cleaned_data.get('movement_type')
         quantity = cleaned_data.get('quantity')
+        from_position = cleaned_data.get('from_position')
+        to_position = cleaned_data.get('to_position')
 
-        if not all([item, position, movement_type, quantity]):
-            return cleaned_data
+        # ❌ ambos vazios
+        if not from_position and not to_position:
+            raise forms.ValidationError(
+                'Informe uma posição de origem ou destino.'
+            )
 
-        if movement_type == 'OUT':
+        # ❌ iguais
+        if from_position and to_position and from_position == to_position:
+            raise forms.ValidationError(
+                'Origem e destino não podem ser iguais.'
+            )
+
+        # ❌ valida saída
+        if from_position:
             stock = Stock.objects.filter(
                 item=item,
-                position=position
+                position=from_position
             ).first()
 
             if not stock or stock.quantity < quantity:
                 raise forms.ValidationError(
-                    'Quantidade insuficiente em estoque para essa posição.'
+                    'Quantidade insuficiente na posição de origem.'
                 )
 
         return cleaned_data
