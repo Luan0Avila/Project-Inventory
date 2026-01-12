@@ -5,7 +5,8 @@
     <h1>Home</h1>
 
     <a href="{% url "storage:storage_map" %}">Go to the map</a>
-    <a href="storage:storage_movimentation">make movement</a>
+    <a href="{% url "storage:stock_movement"%}">make movement</a>
+    <a href="{% url "storage:stock_overview" %}">View Inventory</a>
 </div>
 
 {% endblock content %}

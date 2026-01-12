@@ -7,6 +7,7 @@ class Position(models.Model):
     def __str__(self):
         return self.position
 
+
 class Item(models.Model):
     code = models.CharField(max_length=7, unique=True)
     description = models.CharField(max_length=100, default=None)
@@ -21,6 +22,7 @@ class Stock(models.Model):
 
     class Meta:
         unique_together = ('item', 'position')
+
 
     def __str__(self):
         return f"{self.item} - {self.position}"

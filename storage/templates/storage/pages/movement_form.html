@@ -1,13 +1,13 @@
 {% extends "global/base.html" %}
 
 {% block content %}
-<h2>Movimentação de Estoque</h2>
+<h2>Storage Movementation</h2>
 
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
 
-    <button type="submit">Confirmar</button>
+    <button type="submit">Confirm</button>
 </form>
 
 {% for message in messages %}

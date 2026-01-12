@@ -49,3 +49,8 @@ class StockMovementForm(forms.Form):
                 )
 
         return cleaned_data
+
+
+class PositionAdjustForm(forms.Form):
+    item = forms.ModelChoiceField(queryset=Item.objects.all())
+    quantity = forms.DecimalField(min_value=0)
