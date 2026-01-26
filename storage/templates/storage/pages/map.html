@@ -1,11 +1,14 @@
 {% extends "global/base.html" %}
 
 {% block content %}
+<h2>Mapa de Estoque</h2>
+
 <div class="grid">
     {% for position in positions %}
-        <div class="cell {% if position.occupied %}occupied{% else %}free{% endif %}">
+        <a href="{% url 'storage:position_detail' position.id %}"
+            class="cell {% if position.has_stock %}occupied{% else %}free{% endif %}">
             {{ position.position }}
-        </div>
+        </a>
     {% endfor %}
 </div>
-{% endblock content %}
+{% endblock %}

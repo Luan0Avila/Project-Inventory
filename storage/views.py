@@ -11,17 +11,67 @@ def home(request):
 
 def storage_map(request):
     positions = Position.objects.annotate(
-        occupied=Exists(
-            Stock.objects.filter(
-                position=OuterRef('pk'),
-                quantity__gt=0
-            )
+        has_stock=Exists(
+            Stock.objects.filter(position=OuterRef('pk'), quantity__gt=0)
         )
     )
 
     return render(request, 'storage/pages/map.html', {
         'positions': positions
-    }) 
+    })
+
+def position_detail(request, position_id):
+    position = get_object_or_404(Position, id=position_id)
+    stock = Stock.objects.filter(position=position).select_related('item').first()
+    items = Item.objects.all()
+
+    if request.method == 'POST':
+        item_id = request.POST.get('item')
+        new_quantity = float(request.POST.get('quantity'))
+
+        item = Item.objects.get(id=item_id)
+
+        with transaction.atomic():
+            if stock:
+                diff = new_quantity - float(stock.quantity)
+
+                if diff > 0:
+                    Movement.objects.create(
+                        item=item,
+                        position=position,
+                        movement_type='IN',
+                        quantity=diff
+                    )
+                elif diff < 0:
+                    Movement.objects.create(
+                        item=item,
+                        position=position,
+                        movement_type='OUT',
+                        quantity=abs(diff)
+                    )
+
+                stock.item = item
+                stock.quantity = new_quantity
+                stock.save()
+            else:
+                Stock.objects.create(
+                    item=item, position=position, quantity=new_quantity
+                )
+                Movement.objects.create(
+                    item=item,
+                    position=position,
+                    movement_type='IN',
+                    quantity=new_quantity
+                )
+
+        messages.success(request, 'Posição atualizada com sucesso')
+        return redirect('storage:position_detail', position_id=position.id)
+
+    return render(request, 'storage/pages/position_detail.html', {
+        'position': position,
+        'stock': stock,
+        'items': items
+    })
 
 
 
