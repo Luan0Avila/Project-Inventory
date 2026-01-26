@@ -1,4 +1,23 @@
-{% include './partials/head.html'%}
+{% include './partials/head.html' %}
 
+<header class="app-header">
+    <h1 class="app-title">Inventory</h1>
 
-{%block content%}{%endblock content%}
+    <nav>
+            {% if request.resolver_match.url_name != 'storage_home' %}
+                <a href="{% url 'storage:storage_home' %}" class="button">
+                    ← Back
+                </a>
+            {% endif %}
+            <a href="{% url 'storage:storage_home' %}" class="button">
+                Login
+            </a>
+            <a href="{% url 'storage:storage_home' %}" class="button">
+                Register
+            </a>
+        </nav>
+</header>
+
+<main class="app-content">
+    {% block content %}{% endblock content %}
+</main>

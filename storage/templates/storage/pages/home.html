@@ -1,13 +1,11 @@
 {% extends "global/base.html" %}
 
 {% block content %}
-<div>
-    <h1>Home</h1>
+<div class="home-container">
+    <h1 class="page-title">Home</h1>
 
-    <a href="{% url "storage:storage_map" %}">Go to the map</a>
-    <a href="{% url "storage:stock_movement"%}">make movement</a>
-    <a href="{% url "storage:stock_overview" %}">View Inventory</a>
+    <a href="{% url 'storage:storage_map' %}" class="Home-option">Go to the map</a>
+    <a href="{% url 'storage:stock_movement' %}" class="Home-option">Make movement</a>
+    <a href="{% url 'storage:stock_overview' %}" class="Home-option">View Inventory</a>
 </div>
-
-{% endblock content %}
-
+{% endblock %}

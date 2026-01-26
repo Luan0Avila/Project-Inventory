@@ -1,3 +1,5 @@
+
+/*map*/
 .grid {
     display: grid;
     grid-template-columns: repeat(5, 80px);
@@ -21,4 +23,110 @@
 
 .occupied {
     background-color: #e74c3c; /* vermelho */
+}
+
+/*home*/
+.page-title {
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+    color: #1f2933;
+    text-align: center;
+}
+
+/* Container central */
+.home-container {
+    max-width: 600px;
+    margin: 80px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Botões / opções */
+.Home-option {
+    display: block;
+    padding: 16px 20px;
+    background-color: #2563eb; /* azul profissional */
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Hover */
+.Home-option:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* Clique */
+.Home-option:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .Home-option {
+        font-size: 1rem;
+        padding: 14px;
+    }
+}
+
+/*Base*/
+.app-header {
+    height: 64px;
+    padding: 0 24px;
+    background-color: #1e293b; /* cinza azulado */
+    color: #ffffff;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Título */
+.app-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Botão voltar */
+.button {
+    margin-left: 5px ;
+    padding: 8px 14px;
+    background-color: #334155;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover */
+.button:hover {
+    background-color: #475569;
+    transform: translateY(-1px);
+}
+
+/* Clique */
+.button:active {
+    transform: translateY(0);
+}
+
+/* Conteúdo abaixo do header */
+.app-content {
+    padding: 24px;
 }
