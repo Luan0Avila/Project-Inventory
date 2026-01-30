@@ -28,4 +28,13 @@ def register_create(request):
         messages.success(request, 'Your user is created, please log in')
 
         del(request.session['register_form_data'])
-        return redirect(reverse('todo_list:home'))
+        return redirect(reverse('storage:storage_home'))
+    
+    return render(
+        request,
+        'user/pages/register.html',
+        {
+            'form': form,
+            'form_action': reverse('user:register_create')
+        }
+    )
