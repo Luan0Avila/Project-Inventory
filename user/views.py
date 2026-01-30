@@ -1,8 +1,10 @@
 from django.shortcuts import render,redirect
 from django.urls import reverse
 from .forms.register_form import RegisterForm
+from .forms.login_form import LoginForm
 from django.contrib import messages
 from django.http import Http404
+from django.contrib.auth import authenticate, login
 
 
 def register_view(request):
@@ -36,5 +38,45 @@ def register_create(request):
         {
             'form': form,
             'form_action': reverse('user:register_create')
+        }
+    )
+
+def login_view(request):
+    form  = LoginForm()
+    
+    return render(request, 'user/pages/login.html',{
+        'form': form,
+        'form_action': reverse('user:login_create')
+    })
+
+
+def login_create(request):
+    if request.method != 'POST':
+        raise Http404()
+
+    form = LoginForm(request.POST)
+
+    if form.is_valid():
+        authenticated_user = authenticate(
+            username=form.cleaned_data.get('username', ''),
+            password=form.cleaned_data.get('password', ''),
+        )
+
+        if authenticated_user is not None:
+            login(request, authenticated_user)
+            messages.success(request, 'Você está conectado.')
+            return redirect(reverse('todo_list:home'))
+
+        messages.error(request, 'Invalid credentials')
+
+    else:
+        messages.error(request, 'Invalid username or password')
+
+    return render(
+        request,
+        'user/pages/login.html',
+        {
+            'form': form,
+            'form_action': reverse('user:login_create')
         }
     )
