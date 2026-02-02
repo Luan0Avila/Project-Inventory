@@ -30,7 +30,7 @@ def register_create(request):
         messages.success(request, 'Your user is created, please log in')
 
         del(request.session['register_form_data'])
-        return redirect(reverse('storage:storage_home'))
+        return redirect(reverse('user:login_view'))
     
     return render(
         request,
@@ -58,19 +58,17 @@ def login_create(request):
 
     if form.is_valid():
         authenticated_user = authenticate(
-            username=form.cleaned_data.get('username', ''),
-            password=form.cleaned_data.get('password', ''),
-        )
+        request,
+        username=form.cleaned_data.get('username'),
+        password=form.cleaned_data.get('password'),
+    )
 
         if authenticated_user is not None:
             login(request, authenticated_user)
             messages.success(request, 'Você está conectado.')
-            return redirect(reverse('todo_list:home'))
+            return redirect(reverse('storage:storage_home'))
 
         messages.error(request, 'Invalid credentials')
-
-    else:
-        messages.error(request, 'Invalid username or password')
 
     return render(
         request,
