@@ -4,8 +4,8 @@ from .forms.register_form import RegisterForm
 from .forms.login_form import LoginForm
 from django.contrib import messages
 from django.http import Http404
-from django.contrib.auth import authenticate, login
-
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 def register_view(request):
 	register_form_data = request.session.get('register_form_data', None)
@@ -72,3 +72,13 @@ def login_create(request):
         messages.error(request, 'Invalid username or password')
 
     return redirect(reverse('storage:home'))
+
+@login_required
+def logout_view(request):
+    if not request.POST:
+        messages.error(request, 'Invalid logout request')
+        return redirect(reverse('user:login_view'))
+
+    logout(request)
+    messages.success(request, 'Logged out successfully')
+    return redirect(reverse('user:login_view'))
