@@ -51,30 +51,24 @@ def login_view(request):
 
 
 def login_create(request):
-    if request.method != 'POST':
+    if not request.POST:
         raise Http404()
 
     form = LoginForm(request.POST)
 
     if form.is_valid():
         authenticated_user = authenticate(
-        request,
         username=form.cleaned_data.get('username'),
         password=form.cleaned_data.get('password'),
-    ) 
-
-        if authenticated_user is not None:
-            login(request, authenticated_user)
-            messages.success(request, 'Você está conectado.')
-            return redirect(reverse('storage:storage_home'))
-
-        messages.error(request, 'Invalid credentials')
-
-    return render(
-        request,
-        'user/pages/login.html',
-        {
-            'form': form,
-            'form_action': reverse('user:login_create')
-        }
     )
+        if authenticated_user is not None:
+            messages.success(request, 'Você está conectado.')
+            login(request, authenticated_user)
+            return redirect(reverse('storage:storage_home'))
+        else:
+            messages.error(request, 'Invalid credentials')
+
+    else:
+        messages.error(request, 'Invalid username or password')
+
+    return redirect(reverse('storage:home'))
