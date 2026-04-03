@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.db import transaction
 from .forms import StockMovementForm
 from .forms import PositionAdjustForm
+from django.contrib.auth.decorators import login_required
 
 def home(request):
     return render(request, 'storage/pages/home.html')
