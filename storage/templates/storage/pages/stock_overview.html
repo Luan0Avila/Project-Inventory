@@ -19,7 +19,6 @@
             <td>{{ row.position.position }}</td>
 
             {% if editing_position_id == row.position.id %}
-                {# 🔵 LINHA EM MODO EDIÇÃO #}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="position_id" value="{{ row.position.id }}">

@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Position(models.Model):
-    position = models.CharField(max_length=10, unique=True)
+    position = models.CharField(max_length=10, unique=True) # avaliar necessidade de alteração, pois pode haver mais de um item em uma posição
 
     def __str__(self):
         return self.position

@@ -74,8 +74,6 @@ def position_detail(request, position_id):
         'items': items
     })
 
-
-
 def stock_movement(request):
     if request.method == 'POST':
         form = StockMovementForm(request.POST)
@@ -88,7 +86,6 @@ def stock_movement(request):
 
             with transaction.atomic():
 
-                # 🔁 SAÍDA
                 if from_position:
                     Movement.objects.create(
                         item=item,
@@ -104,7 +101,6 @@ def stock_movement(request):
                     stock_from.quantity -= quantity
                     stock_from.save()
 
-                # 🔁 ENTRADA
                 if to_position:
                     Movement.objects.create(
                         item=item,
@@ -129,8 +125,6 @@ def stock_movement(request):
     return render(request, 'storage/pages/movement_form.html', {
         'form': form
     })
-
-
 
 def stock_overview(request):
     edit_id = request.GET.get('edit')
@@ -211,7 +205,6 @@ def stock_overview(request):
         'editing_position_id': int(edit_id) if edit_id else None
     })
 
-
 def position_edit(request, position_id):
     position = get_object_or_404(Position, id=position_id)
     stock = Stock.objects.filter(position=position).first()
@@ -223,7 +216,7 @@ def position_edit(request, position_id):
             item = form.cleaned_data['item']
             new_quantity = form.cleaned_data['quantity']
 
-            with transaction.atomic():
+            with transaction.atomic(): # ver possibilidade de refatoração dentro de um função apenas para essa movimentação
                 if stock:
                     diff = new_quantity - stock.quantity
 

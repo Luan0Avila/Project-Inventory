@@ -61,7 +61,7 @@ def login_create(request):
         request,
         username=form.cleaned_data.get('username'),
         password=form.cleaned_data.get('password'),
-    )
+    ) 
 
         if authenticated_user is not None:
             login(request, authenticated_user)
