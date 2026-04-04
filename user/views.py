@@ -75,7 +75,7 @@ def login_create(request):
 
 @login_required
 def logout_view(request):
-    if not request.POST:
+    if request.method != 'POST':
         messages.error(request, 'Invalid logout request')
         return redirect(reverse('user:login_view'))
 
