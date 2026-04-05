@@ -6,7 +6,8 @@ from django.db import transaction
 from .forms import StockMovementForm
 from .forms import PositionAdjustForm
 from django.contrib.auth.decorators import login_required
-from utils.validation_movment import validation_movment
+from storage.services.validation_movment import validation_movment
+from storage.services.stock_trasnfer import stock_trasnfer
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -54,38 +55,7 @@ def stock_movement(request):
             from_position = form.cleaned_data['from_position']
             to_position = form.cleaned_data['to_position']
 
-            with transaction.atomic():
-
-                if from_position:
-                    Movement.objects.create(
-                        item=item,
-                        position=from_position,
-                        movement_type='OUT',
-                        quantity=quantity
-                    )
-
-                    stock_from = Stock.objects.get(
-                        item=item,
-                        position=from_position
-                    )
-                    stock_from.quantity -= quantity
-                    stock_from.save()
-
-                if to_position:
-                    Movement.objects.create(
-                        item=item,
-                        position=to_position,
-                        movement_type='IN',
-                        quantity=quantity
-                    )
-
-                    stock_to, _ = Stock.objects.get_or_create(
-                        item=item,
-                        position=to_position,
-                        defaults={'quantity': 0}
-                    )
-                    stock_to.quantity += quantity
-                    stock_to.save()
+            stock_trasnfer(from_position, item, quantity, to_position)
 
             messages.success(request, 'Movimentação realizada com sucesso!')
             return redirect('storage:stock_movement')
