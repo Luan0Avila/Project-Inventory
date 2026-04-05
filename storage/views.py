@@ -8,6 +8,8 @@ from .forms import PositionAdjustForm
 from django.contrib.auth.decorators import login_required
 from storage.services.validation_movment import validation_movment
 from storage.services.stock_trasnfer import stock_trasnfer
+from storage.services.stock_att_register import handle_stock
+from storage.services.overview_stock import overview
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -79,65 +81,15 @@ def stock_overview(request):
 
         stock = Stock.objects.filter(position=position).first()
 
-        with transaction.atomic():
-            if stock:
-                diff = new_quantity - float(stock.quantity)
-
-                if diff > 0:
-                    Movement.objects.create(
-                        item=item,
-                        position=position,
-                        movement_type='IN',
-                        quantity=diff
-                    )
-                elif diff < 0:
-                    Movement.objects.create(
-                        item=item,
-                        position=position,
-                        movement_type='OUT',
-                        quantity=abs(diff)
-                    )
-
-                stock.item = item
-                stock.quantity = new_quantity
-                stock.save()
-            else:
-                Stock.objects.create(
-                    item=item,
-                    position=position,
-                    quantity=new_quantity
-                )
-                Movement.objects.create(
-                    item=item,
-                    position=position,
-                    movement_type='IN',
-                    quantity=new_quantity
-                )
-
+        handle_stock(stock, new_quantity, item, position)
+        
         messages.success(request, 'Estoque atualizado')
         return redirect('storage:stock_overview')
 
     positions = Position.objects.all()
     items = Item.objects.all()
-
-    rows = []
-    for position in positions:
-        stock = Stock.objects.filter(position=position).select_related('item').first()
-
-        if stock and stock.quantity > 0:
-            rows.append({
-                'position': position,
-                'item': stock.item,
-                'quantity': stock.quantity,
-                'empty': False
-            })
-        else:
-            rows.append({
-                'position': position,
-                'item': None,
-                'quantity': 0,
-                'empty': True
-            })
+    
+    rows = overview(positions)
 
     return render(request, 'storage/pages/stock_overview.html', {
         'rows': rows,
