@@ -6,6 +6,7 @@ from django.db import transaction
 from .forms import StockMovementForm
 from .forms import PositionAdjustForm
 from django.contrib.auth.decorators import login_required
+from utils.validation_movment import validation_movment
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -32,38 +33,7 @@ def position_detail(request, position_id):
 
         item = Item.objects.get(id=item_id)
 
-        with transaction.atomic():
-            if stock:
-                diff = new_quantity - float(stock.quantity)
-
-                if diff > 0:
-                    Movement.objects.create(
-                        item=item,
-                        position=position,
-                        movement_type='IN',
-                        quantity=diff
-                    )
-                elif diff < 0:
-                    Movement.objects.create(
-                        item=item,
-                        position=position,
-                        movement_type='OUT',
-                        quantity=abs(diff)
-                    )
-
-                stock.item = item
-                stock.quantity = new_quantity
-                stock.save()
-            else:
-                Stock.objects.create(
-                    item=item, position=position, quantity=new_quantity
-                )
-                Movement.objects.create(
-                    item=item,
-                    position=position,
-                    movement_type='IN',
-                    quantity=new_quantity
-                )
+        validation_movment(stock, new_quantity, item, position)
 
         messages.success(request, 'Posição atualizada com sucesso')
         return redirect('storage:position_detail', position_id=position.id)
@@ -215,6 +185,7 @@ def position_edit(request, position_id):
         if form.is_valid():
             item = form.cleaned_data['item']
             new_quantity = form.cleaned_data['quantity']
+
 
             with transaction.atomic(): # ver possibilidade de refatoração dentro de um função apenas para essa movimentação
                 if stock:
