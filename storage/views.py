@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Stock, Position, Stock, Movement, Item
+from .models import Stock, Position, Stock, StockMovement, Item
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
 from django.db import transaction
@@ -114,14 +114,14 @@ def position_edit(request, position_id):
                     diff = new_quantity - stock.quantity
 
                     if diff > 0:
-                        Movement.objects.create(
+                        StockMovement.objects.create(
                             item=item,
                             position=position,
                             movement_type='IN',
                             quantity=diff
                         )
                     elif diff < 0:
-                        Movement.objects.create(
+                        StockMovement.objects.create(
                             item=item,
                             position=position,
                             movement_type='OUT',
@@ -138,7 +138,7 @@ def position_edit(request, position_id):
                         quantity=new_quantity
                     )
 
-                    Movement.objects.create(
+                    StockMovement.objects.create(
                         item=item,
                         position=position,
                         movement_type='IN',

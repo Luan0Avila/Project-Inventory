@@ -28,39 +28,51 @@ class Stock(models.Model):
         return f"{self.item} - {self.position}"
     
 
-class Movement(models.Model):
+from django.contrib.auth.models import User
+
+class StockMovement(models.Model):
     IN = 'IN'
     OUT = 'OUT'
+    TRANSFER = 'TRANSFER'
 
     MOVEMENT_TYPES = [
         (IN, 'Entrada'),
         (OUT, 'Saída'),
+        (TRANSFER, 'Transferência'),
     ]
 
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    position = models.ForeignKey(Position, on_delete=models.CASCADE)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    movement_type = models.CharField(max_length=3, choices=MOVEMENT_TYPES)
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.item} {self.movement_type} {self.quantity}"
-
-
-class Transfer(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
     from_position = models.ForeignKey(
         Position,
-        on_delete=models.CASCADE,
-        related_name='transfer_out'
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='movements_from'
     )
+
     to_position = models.ForeignKey(
         Position,
-        on_delete=models.CASCADE,
-        related_name='transfer_in'
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='movements_to'
     )
+
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
+
+    movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPES)
+
+    description = models.TextField(blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.item} {self.from_position} → {self.to_position}'
+        return f"{self.item} - {self.movement_type} - {self.quantity}"

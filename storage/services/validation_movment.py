@@ -1,4 +1,4 @@
-from storage.models import Movement, Stock
+from storage.models import StockMovement, Stock
 from django.db import transaction
 from decimal import Decimal
 
@@ -11,17 +11,17 @@ def validation_movment(stock, new_quantity, item, position):
             diff = new_quantity - stock.quantity
 
             if diff > 0:
-                Movement.objects.create(
+                StockMovement.objects.create(
                     item=item,
                     position=position,
-                    movement_type='IN',
+                    StockMovement_type='IN',
                     quantity=diff
                 )
             elif diff < 0:
-                Movement.objects.create(
+                StockMovement.objects.create(
                     item=item,
                     position=position,
-                    movement_type='OUT',
+                    StockMovement_type='OUT',
                     quantity=abs(diff)
                 )
 
@@ -35,9 +35,9 @@ def validation_movment(stock, new_quantity, item, position):
                 quantity=new_quantity
             )
 
-            Movement.objects.create(
+            StockMovement.objects.create(
                 item=item,
                 position=position,
-                movement_type='IN',
+                StockMovement_type='IN',
                 quantity=new_quantity
             )

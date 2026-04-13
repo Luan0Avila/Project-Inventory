@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Position, Item, Stock, Movement
+from .models import Position, Item, Stock, StockMovement
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
@@ -23,9 +23,21 @@ class StockAdmin(admin.ModelAdmin):
     list_filter = ('position', 'item')
     search_fields = ('item__code', 'position__position')
 
-@admin.register(Movement)
+@admin.register(StockMovement)
 class MovementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'item', 'position', 'movement_type', 'quantity', 'created_at')
-    list_filter = ('movement_type', 'position', 'item')
-    search_fields = ('item__code',)
-    readonly_fields = ('created_at',)
+    list_display = (
+        'item',
+        'movement_type',
+        'quantity',
+        'from_position',
+        'to_position',
+        'user',
+        'created_at'
+    )
+
+    list_filter = (
+        'movement_type',
+        'from_position',
+        'to_position',
+        'created_at'
+    )
