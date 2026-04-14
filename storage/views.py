@@ -3,13 +3,15 @@ from .models import Stock, Position, Stock, StockMovement, Item
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
 from django.db import transaction
+from storage.models import StockMovement
 from .forms import StockMovementForm
 from .forms import PositionAdjustForm
 from django.contrib.auth.decorators import login_required
-from storage.services.validation_movment import validation_movment
-from storage.services.stock_trasnfer import stock_trasnfer
+from storage.services.validation_movment import validation_movement
+from storage.services.stock_transfer import stock_transfer
 from storage.services.stock_att_register import handle_stock
 from storage.services.overview_stock import overview
+from django.core.paginator import Paginator
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -36,7 +38,7 @@ def position_detail(request, position_id):
 
         item = Item.objects.get(id=item_id)
 
-        validation_movment(stock, new_quantity, item, position)
+        validation_movement(stock, new_quantity, item, position)
 
         messages.success(request, 'Posição atualizada com sucesso')
         return redirect('storage:position_detail', position_id=position.id)
@@ -57,7 +59,7 @@ def stock_movement(request):
             from_position = form.cleaned_data['from_position']
             to_position = form.cleaned_data['to_position']
 
-            stock_trasnfer(from_position, item, quantity, to_position)
+            stock_transfer(from_position, item, quantity, to_position)
 
             messages.success(request, 'Movimentação realizada com sucesso!')
             return redirect('storage:stock_movement')
@@ -81,7 +83,7 @@ def stock_overview(request):
 
         stock = Stock.objects.filter(position=position).first()
 
-        handle_stock(stock, new_quantity, item, position)
+        handle_stock(stock, new_quantity, item, position, user=request)
         
         messages.success(request, 'Estoque atualizado')
         return redirect('storage:stock_overview')
@@ -156,4 +158,30 @@ def position_edit(request, position_id):
     return render(request, 'storage/pages/position_edit.html', {
         'position': position,
         'form': form
+    })
+
+
+
+
+def movement_history(request):
+    movements = StockMovement.objects.select_related(
+        'item', 'user', 'from_position', 'to_position'
+    ).order_by('-created_at')
+
+    # filtros
+    item = request.GET.get('item')
+    movement_type = request.GET.get('type')
+
+    paginator = Paginator(movements, 20)
+    page = request.GET.get('page')
+
+    movements = paginator.get_page(page)
+    if item:
+        movements = movements.filter(item__id=item)
+
+    if movement_type:
+        movements = movements.filter(movement_type=movement_type)
+
+    return render(request, "movement_history.html", {
+        "movements": movements
     })

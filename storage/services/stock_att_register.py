@@ -1,19 +1,11 @@
 from decimal import Decimal
 from django.db import transaction
-from storage.models import StockMovement, Stock
-
-
-def create_StockMovement(item, position, StockMovement_type, quantity):
-    StockMovement.objects.create(
-        item=item,
-        position=position,
-        StockMovement_type=StockMovement_type,
-        quantity=quantity
-    )
+from storage.models import Stock
+from storage.services.movement_service import register_movement
 
 
 @transaction.atomic
-def handle_stock(stock, new_quantity, item, position):
+def handle_stock(stock, new_quantity, item, position, user=None):
     new_quantity = Decimal(str(new_quantity))
 
     if not stock:
@@ -22,7 +14,16 @@ def handle_stock(stock, new_quantity, item, position):
             position=position,
             quantity=new_quantity
         )
-        create_StockMovement(item, position, 'IN', new_quantity)
+
+        register_movement(
+            user=user,
+            item=item,
+            quantity=new_quantity,
+            movement_type='IN',
+            to_position=position,
+            description="Criação de estoque"
+        )
+
         return stock
 
     diff = new_quantity - stock.quantity
@@ -30,9 +31,27 @@ def handle_stock(stock, new_quantity, item, position):
     if diff == 0:
         return stock
 
-    StockMovement_type = 'IN' if diff > 0 else 'OUT'
-    create_StockMovement(item, position, StockMovement_type, abs(diff))
+    if diff > 0:
+        register_movement(
+            user=user,
+            item=item,
+            quantity=diff,
+            movement_type='IN',
+            to_position=position,
+            description="Ajuste de estoque (entrada)"
+        )
 
+    else:
+        register_movement(
+            user=user,
+            item=item,
+            quantity=abs(diff),
+            movement_type='OUT',
+            from_position=position,
+            description="Ajuste de estoque (saída)"
+        )
+
+    # atualiza estoque
     stock.quantity = new_quantity
     stock.save(update_fields=['quantity'])
 

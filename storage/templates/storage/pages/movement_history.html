@@ -1,0 +1,101 @@
+{% extends "global/base.html" %}
+
+{% block content %}
+
+<h2>📦 Histórico de Movimentações</h2>
+
+<!-- 🔍 FILTROS -->
+<form method="get" style="margin-bottom: 20px;">
+    
+    <input type="text" name="item" placeholder="ID do item" value="{{ request.GET.item }}">
+
+    <select name="type">
+        <option value="">Todos os tipos</option>
+        <option value="IN" {% if request.GET.type == "IN" %}selected{% endif %}>Entrada</option>
+        <option value="OUT" {% if request.GET.type == "OUT" %}selected{% endif %}>Saída</option>
+        <option value="TRANSFER" {% if request.GET.type == "TRANSFER" %}selected{% endif %}>Transferência</option>
+    </select>
+
+    <button type="submit">Filtrar</button>
+</form>
+
+<!-- 📊 TABELA -->
+<table border="1" cellpadding="8" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Usuário</th>
+            <th>Item</th>
+            <th>Tipo</th>
+            <th>Quantidade</th>
+            <th>Movimentação</th>
+            <th>Descrição</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in movements %}
+        <tr>
+            <!-- 📅 Data -->
+            <td>{{ m.created_at|date:"d/m/Y H:i" }}</td>
+
+            <!-- 👤 Usuário -->
+            <td>{{ m.user }}</td>
+
+            <!-- 📦 Item -->
+            <td>{{ m.item }}</td>
+
+            <!-- 🔁 Tipo -->
+            <td>
+                {% if m.movement_type == 'IN' %}
+                    ➕ Entrada
+                {% elif m.movement_type == 'OUT' %}
+                    ➖ Saída
+                {% else %}
+                    🔁 Transferência
+                {% endif %}
+            </td>
+
+            <!-- 🔢 Quantidade -->
+            <td>{{ m.quantity }}</td>
+
+            <!-- 📍 Origem / Destino -->
+            <td>
+                {% if m.movement_type == 'TRANSFER' %}
+                    {{ m.from_position }} → {{ m.to_position }}
+                {% elif m.movement_type == 'IN' %}
+                    → {{ m.to_position }}
+                {% elif m.movement_type == 'OUT' %}
+                    {{ m.from_position }} →
+                {% endif %}
+            </td>
+
+            <!-- 🧾 Descrição -->
+            <td>{{ m.description }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Nenhuma movimentação encontrada.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 📄 PAGINAÇÃO -->
+<div style="margin-top: 20px;">
+
+    {% if movements.has_previous %}
+        <a href="?page={{ movements.previous_page_number }}">⬅ Anterior</a>
+    {% endif %}
+
+    <span style="margin: 0 10px;">
+        Página {{ movements.number }} de {{ movements.paginator.num_pages }}
+    </span>
+
+    {% if movements.has_next %}
+        <a href="?page={{ movements.next_page_number }}">Próxima ➡</a>
+    {% endif %}
+
+</div>
+
+{% endblock %}
