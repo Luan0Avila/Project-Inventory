@@ -182,6 +182,6 @@ def movement_history(request):
     if movement_type:
         movements = movements.filter(movement_type=movement_type)
 
-    return render(request, "movement_history.html", {
+    return render(request, "storage/pages/movement_history.html", {
         "movements": movements
     })
