@@ -1,6 +1,8 @@
 from storage.models import StockMovement
 
-def register_movement(
+def register_movement( 
+    # adicionar exceções para quando realizar movimentações inválidas
+    # Adicionar posições de kanban e de recebimento para itens não sumirem em movimentações
     *,
     user,
     item,

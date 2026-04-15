@@ -166,6 +166,8 @@ def position_edit(request, position_id):
 
 @login_required
 def movement_history(request):
+    # Fazer os filtros funcionarem corretamente
+    # adicionar filtros de datas
     movements = StockMovement.objects.select_related(
         'item', 'user', 'from_position', 'to_position'
     ).order_by('-created_at')
