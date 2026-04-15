@@ -16,6 +16,7 @@ from django.core.paginator import Paginator
 def home(request):
     return render(request, 'storage/pages/home.html')
 
+@login_required
 def storage_map(request):
     positions = Position.objects.annotate(
         has_stock=Exists(
@@ -27,6 +28,7 @@ def storage_map(request):
         'positions': positions
     })
 
+@login_required
 def position_detail(request, position_id):
     position = get_object_or_404(Position, id=position_id)
     stock = Stock.objects.filter(position=position).select_related('item').first()
@@ -49,6 +51,7 @@ def position_detail(request, position_id):
         'items': items
     })
 
+@login_required
 def stock_movement(request):
     if request.method == 'POST':
         form = StockMovementForm(request.POST)
@@ -69,7 +72,7 @@ def stock_movement(request):
     return render(request, 'storage/pages/movement_form.html', {
         'form': form
     })
-
+@login_required
 def stock_overview(request):
     edit_id = request.GET.get('edit')
 
@@ -99,6 +102,7 @@ def stock_overview(request):
         'editing_position_id': int(edit_id) if edit_id else None
     })
 
+@login_required
 def position_edit(request, position_id):
     position = get_object_or_404(Position, id=position_id)
     stock = Stock.objects.filter(position=position).first()
@@ -160,9 +164,7 @@ def position_edit(request, position_id):
         'form': form
     })
 
-
-
-
+@login_required
 def movement_history(request):
     movements = StockMovement.objects.select_related(
         'item', 'user', 'from_position', 'to_position'

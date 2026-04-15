@@ -71,7 +71,7 @@ def login_create(request):
     else:
         messages.error(request, 'Invalid username or password')
 
-    return redirect(reverse('storage:home'))
+    return redirect(reverse('storage:storage_home'))
 
 @login_required
 def logout_view(request):
