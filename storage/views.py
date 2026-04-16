@@ -166,8 +166,6 @@ def position_edit(request, position_id):
 
 @login_required
 def movement_history(request):
-    # Fazer os filtros funcionarem corretamente
-    # adicionar filtros de datas
     movements = StockMovement.objects.select_related(
         'item', 'user', 'from_position', 'to_position'
     ).order_by('-created_at')
@@ -176,15 +174,16 @@ def movement_history(request):
     item = request.GET.get('item')
     movement_type = request.GET.get('type')
 
-    paginator = Paginator(movements, 20)
-    page = request.GET.get('page')
-
-    movements = paginator.get_page(page)
     if item:
         movements = movements.filter(item__id=item)
 
     if movement_type:
         movements = movements.filter(movement_type=movement_type)
+
+    # paginação (depois dos filtros)
+    paginator = Paginator(movements, 20)
+    page = request.GET.get('page')
+    movements = paginator.get_page(page)
 
     return render(request, "storage/pages/movement_history.html", {
         "movements": movements
