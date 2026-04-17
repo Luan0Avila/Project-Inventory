@@ -12,7 +12,7 @@ from storage.services.stock_transfer import stock_transfer
 from storage.services.stock_att_register import handle_stock
 from storage.services.overview_stock import overview
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -189,3 +189,35 @@ def movement_history(request):
     return render(request, "storage/pages/movement_history.html", {
         "movements": movements
     })
+
+def consolidation_storage(request):
+    
+    items_summary = (
+        Stock.objects
+        .values('item__id', 'item__code')
+        .annotate(
+            total_quantity=Sum('quantity'),
+            total_positions=Count('position', distinct=True)
+        )
+        .order_by('item__code')
+    )
+
+    occuppied_positions = (
+        Stock.objects
+        .filter(quantity__gt=0)
+        .values('position')
+        .count()
+    )
+
+    total_positions = Position.objects.count()
+
+    empty_positions = total_positions - occuppied_positions
+
+    context = {
+        'item_summary': items_summary,
+        'occupied_postions': occuppied_positions,
+        'empty_positions': empty_positions,
+        'total_postions': total_positions
+    }
+
+    return render(request, 'storage/pages/stock_datas.html', context)
