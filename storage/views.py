@@ -12,6 +12,7 @@ from storage.services.stock_transfer import stock_transfer
 from storage.services.stock_att_register import handle_stock
 from storage.services.overview_stock import overview
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 def home(request):
     return render(request, 'storage/pages/home.html')
@@ -175,7 +176,7 @@ def movement_history(request):
     movement_type = request.GET.get('type')
 
     if item:
-        movements = movements.filter(item__id=item)
+        movements = movements.filter(item__code=item)
 
     if movement_type:
         movements = movements.filter(movement_type=movement_type)
