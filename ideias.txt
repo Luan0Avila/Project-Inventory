@@ -1,1 +1,3 @@
 -Adicionar ao projeto uma ferramenta para ver um consolidado de posições totais e quantidades totais dos itens
+
+- Adicionar uma maneira de controlar lotes e validades. Junto tambem criar um sistema de prioridade de uso com base nas validades de cada item
