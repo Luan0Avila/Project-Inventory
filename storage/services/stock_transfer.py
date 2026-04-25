@@ -1,34 +1,55 @@
-from storage.models import Stock
 from django.db import transaction
+from decimal import Decimal
+from storage.models import StockLot
 from storage.services.movement_service import register_movement
 
 
 @transaction.atomic
 def stock_transfer(from_position, item, quantity, to_position, user=None):
+    quantity = Decimal(str(quantity))
 
     if not from_position or not to_position:
         raise ValueError("Origem e destino são obrigatórios")
 
-    stock_from = Stock.objects.get(
-        item=item,
-        position=from_position
+    # pega lotes ordenados por validade (FIFO)
+    lots = (
+        StockLot.objects
+        .filter(item=item, position=from_position, quantity__gt=0)
+        .order_by('expiration_date')
     )
 
-    if stock_from.quantity < quantity:
+    total_available = sum(l.quantity for l in lots)
+
+    if total_available < quantity:
         raise ValueError("Estoque insuficiente")
 
-    stock_from.quantity -= quantity
-    stock_from.save(update_fields=['quantity'])
+    remaining = quantity
 
-    stock_to, _ = Stock.objects.get_or_create(
-        item=item,
-        position=to_position,
-        defaults={'quantity': 0}
-    )
+    for lot in lots:
+        if remaining <= 0:
+            break
 
-    stock_to.quantity += quantity
-    stock_to.save(update_fields=['quantity'])
+        move_qty = min(lot.quantity, remaining)
 
+        # 🔻 remove da origem
+        lot.quantity -= move_qty
+        lot.save(update_fields=['quantity'])
+
+        # 🔺 adiciona no destino (mesmo lote e validade)
+        dest_lot, _ = StockLot.objects.get_or_create(
+            item=item,
+            position=to_position,
+            lot=lot.lot,
+            expiration_date=lot.expiration_date,
+            defaults={'quantity': 0}
+        )
+
+        dest_lot.quantity += move_qty
+        dest_lot.save(update_fields=['quantity'])
+
+        remaining -= move_qty
+
+    # 🧾 log único
     register_movement(
         user=user,
         item=item,
@@ -36,5 +57,5 @@ def stock_transfer(from_position, item, quantity, to_position, user=None):
         movement_type='TRANSFER',
         from_position=from_position,
         to_position=to_position,
-        description="Transferência entre posições"
+        description="Transferência (FIFO por validade)"
     )

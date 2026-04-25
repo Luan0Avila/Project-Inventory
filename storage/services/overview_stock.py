@@ -1,26 +1,50 @@
-from storage.models import Stock
+from storage.models import StockLot
+from django.db.models import Sum
+
 
 def overview(positions):
-    stocks = Stock.objects.select_related('item', 'position')
-    stock_map = {s.position_id: s for s in stocks}
+    stocklots = (
+        StockLot.objects
+        .select_related('item', 'position')
+        .order_by('position_id')
+    )
+
+    # agrupa por posição
+    position_map = {}
+
+    for lot in stocklots:
+        if lot.position_id not in position_map:
+            position_map[lot.position_id] = {
+                'items': [],
+                'total_quantity': 0
+            }
+
+        position_map[lot.position_id]['items'].append({
+            'item': lot.item,
+            'quantity': lot.quantity,
+            'lot': lot.lot,
+            'expiration_date': lot.expiration_date
+        })
+
+        position_map[lot.position_id]['total_quantity'] += lot.quantity
 
     rows = []
 
     for position in positions:
-        stock = stock_map.get(position.id)
+        data = position_map.get(position.id)
 
-        if stock and stock.quantity > 0:
+        if data:
             rows.append({
                 'position': position,
-                'item': stock.item,
-                'quantity': stock.quantity,
+                'items': data['items'],  # 🔥 agora é lista
+                'total_quantity': data['total_quantity'],
                 'empty': False
             })
         else:
             rows.append({
                 'position': position,
-                'item': None,
-                'quantity': 0,
+                'items': [],
+                'total_quantity': 0,
                 'empty': True
             })
 

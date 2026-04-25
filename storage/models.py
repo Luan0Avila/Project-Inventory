@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Position(models.Model):
     position = models.CharField(max_length=10, unique=True) # avaliar necessidade de alteração, pois pode haver mais de um item em uma posição
@@ -15,20 +15,20 @@ class Item(models.Model):
     def __str__(self):
         return self.code
     
-class Stock(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    position = models.ForeignKey(Position, on_delete=models.CASCADE)
+class StockLot(models.Model):
+    item = models.ForeignKey('Item', on_delete=models.CASCADE)
+    position = models.ForeignKey('Position', on_delete=models.CASCADE)
+
+    lot = models.CharField(max_length=50)
+    expiration_date = models.DateField()
+
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        unique_together = ('item', 'position')
-
+        unique_together = ('item', 'position', 'lot', 'expiration_date')
 
     def __str__(self):
-        return f"{self.item} - {self.position}"
-    
-
-from django.contrib.auth.models import User
+        return f"{self.item} | {self.position} | Lote: {self.lot}"
 
 class StockMovement(models.Model):
     IN = 'IN'

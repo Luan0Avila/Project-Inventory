@@ -21,7 +21,7 @@ def home(request):
 def storage_map(request):
     positions = Position.objects.annotate(
         has_stock=Exists(
-            Stock.objects.filter(position=OuterRef('pk'), quantity__gt=0)
+            StockLot.objects.filter(item=item, position=position)
         )
     )
 
@@ -85,7 +85,7 @@ def stock_overview(request):
         position = Position.objects.get(id=position_id)
         item = Item.objects.get(id=item_id)
 
-        stock = Stock.objects.filter(position=position).first()
+        stock = StockLot.objects.filter(item=item, position=position).first()
 
         handle_stock(stock, new_quantity, item, position, user=request)
         
