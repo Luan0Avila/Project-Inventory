@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Position, Item, Stock, StockMovement
+from .models import Position, Item, StockLot, StockMovement
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
@@ -17,7 +17,7 @@ class ItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'code', 'description')
     search_fields = ('code', 'description')
 
-@admin.register(Stock)
+@admin.register(StockLot)
 class StockAdmin(admin.ModelAdmin):
     list_display = ('id', 'item', 'position', 'quantity')
     list_filter = ('position', 'item')

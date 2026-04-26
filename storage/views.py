@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Stock, Position, Stock, StockMovement, Item
+from .models import StockLot, Position, Stock, StockMovement, Item
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
 from django.db import transaction
