@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import StockLot, Position, Stock, StockMovement, Item
+from .models import StockLot, Position, StockMovement, Item
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
 from django.db import transaction
@@ -32,23 +32,40 @@ def storage_map(request):
 @login_required
 def position_detail(request, position_id):
     position = get_object_or_404(Position, id=position_id)
-    stock = Stock.objects.filter(position=position).select_related('item').first()
+
+    # 🔥 todos os lotes da posição
+    stocklots = (
+        StockLot.objects
+        .filter(position=position)
+        .select_related('item')
+        .order_by('expiration_date')
+    )
+
     items = Item.objects.all()
 
     if request.method == 'POST':
         item_id = request.POST.get('item')
-        new_quantity = float(request.POST.get('quantity'))
+        quantity = request.POST.get('quantity')
+        lot = request.POST.get('lot')
+        expiration_date = request.POST.get('expiration_date')
 
-        item = Item.objects.get(id=item_id)
+        item = get_object_or_404(Item, id=item_id)
 
-        validation_movement(stock, new_quantity, item, position)
+        add_stock_lot(
+            item=item,
+            position=position,
+            quantity=quantity,
+            lot=lot,
+            expiration_date=expiration_date,
+            user=request.user
+        )
 
-        messages.success(request, 'Posição atualizada com sucesso')
+        messages.success(request, 'Lote adicionado com sucesso')
         return redirect('storage:position_detail', position_id=position.id)
 
     return render(request, 'storage/pages/position_detail.html', {
         'position': position,
-        'stock': stock,
+        'stocklots': stocklots,
         'items': items
     })
 
@@ -104,65 +121,26 @@ def stock_overview(request):
     })
 
 @login_required
-def position_edit(request, position_id):
+def position_edit(request, position_id, lot_id):
     position = get_object_or_404(Position, id=position_id)
-    stock = Stock.objects.filter(position=position).first()
+    stocklot = get_object_or_404(StockLot, id=lot_id, position=position)
 
     if request.method == 'POST':
-        form = PositionAdjustForm(request.POST)
+        new_quantity = request.POST.get('quantity')
 
-        if form.is_valid():
-            item = form.cleaned_data['item']
-            new_quantity = form.cleaned_data['quantity']
+        with transaction.atomic():
+            adjust_stock_lot(
+                stocklot=stocklot,
+                new_quantity=new_quantity,
+                user=request.user
+            )
 
-
-            with transaction.atomic(): # ver possibilidade de refatoração dentro de um função apenas para essa movimentação
-                if stock:
-                    diff = new_quantity - stock.quantity
-
-                    if diff > 0:
-                        StockMovement.objects.create(
-                            item=item,
-                            position=position,
-                            movement_type='IN',
-                            quantity=diff
-                        )
-                    elif diff < 0:
-                        StockMovement.objects.create(
-                            item=item,
-                            position=position,
-                            movement_type='OUT',
-                            quantity=abs(diff)
-                        )
-
-                    stock.quantity = new_quantity
-                    stock.save()
-
-                else:
-                    Stock.objects.create(
-                        item=item,
-                        position=position,
-                        quantity=new_quantity
-                    )
-
-                    StockMovement.objects.create(
-                        item=item,
-                        position=position,
-                        movement_type='IN',
-                        quantity=new_quantity
-                    )
-
-            messages.success(request, 'Posição atualizada com sucesso')
-            return redirect('storage:stock_overview')
-    else:
-        form = PositionAdjustForm(initial={
-            'item': stock.item if stock else None,
-            'quantity': stock.quantity if stock else 0
-        })
+        messages.success(request, 'Lote atualizado com sucesso')
+        return redirect('storage:position_detail', position_id=position.id)
 
     return render(request, 'storage/pages/position_edit.html', {
         'position': position,
-        'form': form
+        'stocklot': stocklot
     })
 
 @login_required
@@ -191,9 +169,10 @@ def movement_history(request):
     })
 
 def consolidation_storage(request):
-    
+
+    # 📦 total por item
     items_summary = (
-        Stock.objects
+        StockLot.objects
         .values('item__id', 'item__code')
         .annotate(
             total_quantity=Sum('quantity'),
@@ -202,22 +181,26 @@ def consolidation_storage(request):
         .order_by('item__code')
     )
 
-    occuppied_positions = (
-        Stock.objects
+    # 📍 posições ocupadas (DISTINCT é essencial agora)
+    occupied_positions = (
+        StockLot.objects
         .filter(quantity__gt=0)
         .values('position')
+        .distinct()
         .count()
     )
 
+    # 📍 total de posições
     total_positions = Position.objects.count()
 
-    empty_positions = total_positions - occuppied_positions
+    # 📍 posições vazias
+    empty_positions = total_positions - occupied_positions
 
     context = {
-        'item_summary': items_summary,
-        'occupied_postions': occuppied_positions,
+        'items_summary': items_summary,
+        'occupied_positions': occupied_positions,
         'empty_positions': empty_positions,
-        'total_postions': total_positions
+        'total_positions': total_positions
     }
 
     return render(request, 'storage/pages/stock_datas.html', context)
