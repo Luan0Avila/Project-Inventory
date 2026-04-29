@@ -3,13 +3,10 @@ from .models import StockLot, Position, StockMovement, Item
 from django.db.models import Exists, OuterRef
 from django.contrib import messages
 from django.db import transaction
-from storage.models import StockMovement
 from .forms import StockMovementForm
-from .forms import PositionAdjustForm
 from django.contrib.auth.decorators import login_required
-from storage.services.validation_movment import validation_movement
 from storage.services.stock_transfer import stock_transfer
-from storage.services.stock_att_register import handle_stock
+from storage.services.stock_att_register import add_stock_lot, remove_stock_lot
 from storage.services.overview_stock import overview
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum, Count
@@ -20,11 +17,13 @@ def home(request):
 @login_required
 def storage_map(request):
     positions = Position.objects.annotate(
-        has_stock=Exists(
-            StockLot.objects.filter(item=item, position=position)
+    has_stock=Exists(
+        StockLot.objects.filter(
+            position=OuterRef('pk'),
+            quantity__gt=0
         )
     )
-
+)
     return render(request, 'storage/pages/map.html', {
         'positions': positions
     })
@@ -95,20 +94,9 @@ def stock_overview(request):
     edit_id = request.GET.get('edit')
 
     if request.method == 'POST':
-        position_id = request.POST.get('position_id')
-        item_id = request.POST.get('item')
-        new_quantity = float(request.POST.get('quantity'))
-
-        position = Position.objects.get(id=position_id)
-        item = Item.objects.get(id=item_id)
-
-        stock = StockLot.objects.filter(item=item, position=position).first()
-
-        handle_stock(stock, new_quantity, item, position, user=request)
-        
-        messages.success(request, 'Estoque atualizado')
+        messages.error(request, 'Use a tela de posição para alterar estoque por lote.')
         return redirect('storage:stock_overview')
-
+    
     positions = Position.objects.all()
     items = Item.objects.all()
     
